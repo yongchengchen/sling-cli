@@ -21,12 +21,13 @@ import (
 )
 
 type ReplicationConfig struct {
-	Source   string                              `json:"source,omitempty" yaml:"source,omitempty"`
-	Target   string                              `json:"target,omitempty" yaml:"target,omitempty"`
-	Hooks    HookMap                             `json:"hooks,omitempty" yaml:"hooks,omitempty"`
-	Defaults ReplicationStreamConfig             `json:"defaults,omitempty" yaml:"defaults,omitempty"`
-	Streams  map[string]*ReplicationStreamConfig `json:"streams,omitempty" yaml:"streams,omitempty"`
-	Env      map[string]any                      `json:"env,omitempty" yaml:"env,omitempty"`
+	Source         string                              `json:"source,omitempty" yaml:"source,omitempty"`
+	Target         string                              `json:"target,omitempty" yaml:"target,omitempty"`
+	TargetPreQuery string                              `json:"target_pre_query,omitempty" yaml:"target,omitempty"`
+	Hooks          HookMap                             `json:"hooks,omitempty" yaml:"hooks,omitempty"`
+	Defaults       ReplicationStreamConfig             `json:"defaults,omitempty" yaml:"defaults,omitempty"`
+	Streams        map[string]*ReplicationStreamConfig `json:"streams,omitempty" yaml:"streams,omitempty"`
+	Env            map[string]any                      `json:"env,omitempty" yaml:"env,omitempty"`
 
 	// Tasks are compiled tasks
 	Tasks    []*Config `json:"tasks"`
@@ -1099,6 +1100,11 @@ func UnmarshalReplication(replicYAML string) (config ReplicationConfig, err erro
 		return
 	}
 
+	targetPreQuery, ok := m["target_pre_query"]
+	if !ok {
+		targetPreQuery = ""
+	}
+
 	defaults, ok := m["defaults"]
 	if !ok {
 		defaults = g.M() // defaults not mandatory
@@ -1120,11 +1126,12 @@ func UnmarshalReplication(replicYAML string) (config ReplicationConfig, err erro
 	g.Unmarshal(g.Marshal(streams), &maps.Streams)
 
 	config = ReplicationConfig{
-		Source:      cast.ToString(source),
-		Target:      cast.ToString(target),
-		Env:         Env,
-		maps:        maps,
-		originalCfg: replicYAML, // set originalCfg
+		Source:         cast.ToString(source),
+		Target:         cast.ToString(target),
+		TargetPreQuery: cast.ToString(targetPreQuery),
+		Env:            Env,
+		maps:           maps,
+		originalCfg:    replicYAML, // set originalCfg
 	}
 
 	// parse defaults

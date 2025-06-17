@@ -333,6 +333,10 @@ func (t *TaskExecution) getTgtDBConn(ctx context.Context) (conn database.Connect
 		conn.SetProp("use_bulk", "false")
 		conn.SetProp("allow_bulk_import", "false")
 	}
+	if t.Replication.TargetPreQuery != "" {
+		t.SetProgress("Sling Target Connection execute prehook query [%s]", t.Replication.TargetPreQuery)
+		conn.Exec(t.Replication.TargetPreQuery)
+	}
 	return
 }
 
